@@ -65,6 +65,7 @@ class Host{
     ll global_index;
     string mac;
     string ipv4;
+    string subnet;
     string nid;
     string gateway_mac;
 };
@@ -88,7 +89,7 @@ class Router{
   public: 
     ll global_index;
     ll no_of_interfaces;
-    vector< pair<string,string> > interface_ip_mac;
+    vector< pair<pair<string,string>,string> > interface_ip_mac;
 };
 
 ///////////////////////////////////////MAC ADDRESS GENERATION //////////////////////////////////////////
@@ -197,7 +198,7 @@ void dfs(ll current_device, vector<bool> & visited) {
             cout<<"global index : "<<b.global_index<<"\n";
             cout<<"interface list : \n";
             for(ll i=0;i<b.interface_ip_mac.size();i++) {
-              cout<<b.interface_ip_mac[i].first<<" "<<b.interface_ip_mac[i].second<<"\n"; 
+              cout<<b.interface_ip_mac[i].first.first<<" : "<<b.interface_ip_mac[i].first.second<<" "<<b.interface_ip_mac[i].second<<"\n"; 
             }
             cout<<"device type : "<<type<<"\n\n";
         }
@@ -241,6 +242,12 @@ void boot() {
           h.mac = mac_address_list[mac_index];
           device_type[index] = mp(device,host_no);
           mac_index++;
+          cout<<"IP Address : ";
+          cin>>h.ipv4;
+          cout<<"\n";
+          cout<<"Subnet Mask : ";
+          cin>>h.subnet;
+          cout<<"\n";
           host_list.pb(h);
           host_no++;
         }
@@ -273,10 +280,12 @@ void boot() {
           r.global_index = index;
           ll curr = 0;
           while(no > 0) {
-            cout<<"Enter the ip for interface " << curr << " : ";
+            cout<<"ip for interface " << curr << " : ";
             cins(ip);
+            cout<<"Subnet for interface " << curr <<" : ";
+            cins(subnet);
             cout<<"\n";
-            r.interface_ip_mac.pb(mp(ip,mac_address_list[mac_index]));
+            r.interface_ip_mac.pb(mp(mp(ip,subnet),mac_address_list[mac_index]));
             mac_index++;
             curr++;
             no--;
@@ -296,6 +305,11 @@ void boot() {
 
       }
       
+      if(type == 2) {
+
+        // Assigning Ip to all the devices which don't have ip 
+
+      }
 
       if(type == 4) {
         runner = false;
