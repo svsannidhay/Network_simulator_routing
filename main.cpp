@@ -185,9 +185,6 @@ string find_nid(string ip,string subn) {
 
   bitset<32> nid = bitsip & subnet;
 
-  cout<<bitsip<<"\n";
-  cout<<subnet<<"\n";
-  cout<<nid<<"\n";
   string nids;
 
   ll ind = 7;
@@ -207,8 +204,7 @@ string find_nid(string ip,string subn) {
   }
   ll val = nidbits.to_ulong();
   nids += to_string(val);
-  cout<<nids<<"\n";
-  return "";
+  return nids;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -292,105 +288,117 @@ void dfs(ll current_device, vector<bool> & visited) {
 
 
 void boot() {
-
-    find_nid("192.167.54.224","255.255.255.0");
-
     ll n = 0;
 
-    // cout<<"////// -> To Add a device enter 1. (Format : devicetype index) \n";
-    // cout<<"////// -> To Add a connection enter 2. \n";
-    // cout<<"///// -> To Run a query enter 3. \n";
-    // cout<<"//// To exit enter  4 \n";
-    // bool runner = true;
+    cout<<"////// -> To Add a device enter 1. (Format : devicetype index) \n";
+    cout<<"////// -> To Add a connection enter 2. \n";
+    cout<<"///// -> To Run a query enter 3. \n";
+    cout<<"//// To exit enter  4 \n";
+    bool runner = true;
 
 
-    // while(runner) {
-    //   cinll(type);
-    //   // Entering a device
-    //   if(type == 1) {
-    //     cout<<"Enter device and its global index : ";
-    //     cins(device); cinll(index);
-    //     n = max(n,index);
-    //     cout<<"\n";
-    //     if(device == "Host") {
-    //       Host h;
-    //       h.global_index = index;
-    //       h.mac = mac_address_list[mac_index];
-    //       device_type[index] = mp(device,host_no);
-    //       mac_index++;
-    //       cout<<"IP Address : ";
-    //       cin>>h.ipv4;
-    //       cout<<"\n";
-    //       cout<<"Subnet Mask : ";
-    //       cin>>h.subnet;
-    //       cout<<"\n";
-    //       host_list.pb(h);
-    //       host_no++;
-    //     }
+    while(runner) {
+      cinll(type);
+      // Entering a device
+      if(type == 1) {
+        cout<<"Enter device and its global index : ";
+        cins(device); cinll(index);
+        n = max(n,index);
+        cout<<"\n";
+        if(device == "Host") {
+          Host h;
+          h.global_index = index;
+          h.mac = mac_address_list[mac_index];
+          device_type[index] = mp(device,host_no);
+          mac_index++;
+          cout<<"IP Address : ";
+          cin>>h.ipv4;
+          cout<<"\n";
+          cout<<"Subnet Mask : ";
+          cin>>h.subnet;
+          cout<<"\n";
+          host_list.pb(h);
+          host_no++;
+        }
 
-    //     if(device == "Switch") {
-    //       Switch s;
-    //       s.global_index = index;
-    //       s.mac = mac_address_list[mac_index];
-    //       mac_index++;
-    //       switch_list.pb(s);
-    //       device_type[index] = mp(device,switch_no);
-    //       switch_no++;
-    //     } 
+        if(device == "Switch") {
+          Switch s;
+          s.global_index = index;
+          s.mac = mac_address_list[mac_index];
+          mac_index++;
+          switch_list.pb(s);
+          device_type[index] = mp(device,switch_no);
+          switch_no++;
+        } 
 
-    //     if(device == "Hub") {
-    //       Hub h;
-    //       h.global_index = index;
-    //       h.mac = mac_address_list[mac_index];
-    //       mac_index++;
-    //       device_type[index] = mp(device,hub_no);
-    //       hub_no++;
-    //       hub_list.pb(h);
-    //     }
+        if(device == "Hub") {
+          Hub h;
+          h.global_index = index;
+          h.mac = mac_address_list[mac_index];
+          mac_index++;
+          device_type[index] = mp(device,hub_no);
+          hub_no++;
+          hub_list.pb(h);
+        }
 
-    //     if(device == "Router") {
-    //       cout<<"Enter the maximum no of iterfaces need : ";
-    //       cinll(no);
-    //       cout<<"\n";
-    //       Router r;
-    //       r.global_index = index;
-    //       ll curr = 0;
-    //       while(no > 0) {
-    //         cout<<"ip for interface " << curr << " : ";
-    //         cins(ip);
-    //         cout<<"Subnet for interface " << curr <<" : ";
-    //         cins(subnet);
-    //         cout<<"\n";
-    //         r.interface_ip_mac.pb(mp(mp(ip,subnet),mac_address_list[mac_index]));
-    //         mac_index++;
-    //         curr++;
-    //         no--;
-    //       } 
-    //       device_type[index] = mp(device,router_no);
-    //       router_list.pb(r);
-    //       router_no++;
-    //     }
+        if(device == "Router") {
+          cout<<"Enter the maximum no of iterfaces need : ";
+          cinll(no);
+          cout<<"\n";
+          Router r;
+          r.global_index = index;
+          ll curr = 0;
+          while(no > 0) {
+            cout<<"ip for interface " << curr << " : ";
+            cins(ip);
+            cout<<"Subnet for interface " << curr <<" : ";
+            cins(subnet);
+            cout<<"\n";
+            r.interface_ip_mac.pb(mp(mp(ip,subnet),mac_address_list[mac_index]));
+            mac_index++;
+            curr++;
+            no--;
+          } 
+          device_type[index] = mp(device,router_no);
+          router_list.pb(r);
+          router_no++;
+        }
 
-    //   }
+      }
 
-    //   if(type == 2) {
-    //     cout<<"Enter the connection (u,v) : ";
-    //     cinll(u);cinll(v);
-    //     cout<<"\n";
-    //     addEdge(u,v);
+      if(type == 2) {
+        cout<<"Enter the connection (u,v) : ";
+        cinll(u);cinll(v);
+        cout<<"\n";
+        addEdge(u,v);
 
-    //   }
+      }
       
-    //   if(type == 2) {
+      if(type == 3) {
 
-    //     // Assigning Ip to all the devices which don't have ip 
+        cout<<"Enter source's IP : ";
+        cins(ips);
+        cout<<"Enter source's subnet : ";
+        cins(subnets);
+        cout<<"\n";
 
-    //   }
+        cout<<"Enter destination's IP : ";
+        cins(ipd);
+        cout<<"Enter destination's subnet :";
+        cins(subnetd);
 
-    //   if(type == 4) {
-    //     runner = false;
-    //   }
-    // }
+        if(find_nid(ips,subnets) == find_nid(ipd,subnetd)) {
+          cout<<"Sorce and destination are in same subnet";
+        } else {
+          cout<<"Source and destination are in different subnet";
+        }
+
+      }
+
+      if(type == 4) {
+        runner = false;
+      }
+    }
 
     // cout<<"Devices : ";
     // for(ll i=0;i<hub_list.size();i++) {
