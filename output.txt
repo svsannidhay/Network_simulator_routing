@@ -1,0 +1,4 @@
+////// -> To Add a device enter 1. (Format : devicetype index) 
+////// -> To Add a connection enter 2. 
+///// -> To Run a query enter 3. 
+//// To exit enter  4
