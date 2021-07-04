@@ -68,6 +68,7 @@ class Host{
     string subnet;
     string nid;
     string gateway_mac;
+    unordered_map<string,string> arp_table;
 };
 
 class Hub{
@@ -282,6 +283,74 @@ void dfs(ll current_device, vector<bool> & visited) {
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+void arp_request(ll current_device, vector<bool> & visited,string ip_dest,string &mac_dest) {
+  if(!visited[current_device]) {
+        visited[current_device] = true;
+        string type = device_type[current_device].f;
+        if(type == "Host") {
+          int h_index = device_type[current_device].s;
+          Host h = host_list[h_index];
+          if(h.ipv4 == ip_dest) {
+            vector<bool> vis(visited.size(),false);
+            cout<<"Host found !!!!!!";
+            mac_dest = h.mac;
+            return;
+          }
+        }
+
+        if(type == "Router") {
+          Router r = router_list[device_type[current_device].s];
+          for(ll i = 0;i < r.interface_ip_mac.size();i++) {
+            if(r.interface_ip_mac[i].f.f == ip_dest) {
+              vector<bool> vis(visited.size(),false);
+              cout<<"Gateway Found !!!!";
+              mac_dest =  r.interface_ip_mac[i].s;
+              return;
+            }
+          }
+        }
+
+        if(type != "Router") {
+          for(ll i = 0;i < connections[current_device].size(); i++) {
+              if(!visited[connections[current_device][i]]) {
+                arp_request(connections[current_device][i],visited,ip_dest,mac_dest);
+              }
+          }
+        }
+        return;
+    }
+}
+
+////////////////////////////////ARP Table //////////////////////////////////////////////////////
+// runs only when both sender and destination are in same subnet
+
+string search_mac(ll current_device, string ip_Address) {
+  unordered_map<string,string> arp_table = host_list[device_type[current_device].s].arp_table;
+  string mac_dest = "";
+  for(auto it = arp_table.begin(); it != arp_table.end(); it++) {
+    if(it->first == ip_Address) {
+      return it->second;
+    }
+  }
+  vector<bool> visited(1000,false);
+  arp_request(current_device, visited ,ip_Address, mac_dest);
+  return mac_dest;
+}
+
+
+////////////////////////////////Routing (OSPF) //////////////////////////////////////////////////
+
+
+////////////////////////////////SEND PACKETS (BOTH DATA AND ACK) /////////////////////////////////
+
+
+// void send_packet(ll current_device,vector <bool> &visited, string sender_ip , string dest_ip , string)
+ 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 /////////////////////////////////////// NETWORK BOOTER ////////////////////////////////////////// 
 // Assign's MAC addresses and create the graph to represent the whole network
@@ -375,7 +444,8 @@ void boot() {
       }
       
       if(type == 3) {
-
+        cout<<"Enter source's global_index : ";
+        cinll(ind);
         cout<<"Enter source's IP : ";
         cins(ips);
         cout<<"Enter source's subnet : ";
@@ -388,7 +458,8 @@ void boot() {
         cins(subnetd);
 
         if(find_nid(ips,subnets) == find_nid(ipd,subnetd)) {
-          cout<<"Sorce and destination are in same subnet";
+          cout<<"Source and destination are in same subnet \n";
+          cout<<search_mac(ind,ipd);
         } else {
           cout<<"Source and destination are in different subnet";
         }
@@ -400,48 +471,9 @@ void boot() {
       }
     }
 
-    // cout<<"Devices : ";
-    // for(ll i=0;i<hub_list.size();i++) {
-    //     cout<<"Global index : "<<hub_list[i].global_index<<"\n";
-    //     cout<<"Mac address : "<<hub_list[i].mac <<" ";
-    //     cout<<"\n";
-    //     cout<<"\n";
-    // }
-    // cout<<"\n";
-    // cout<<"Hubs : ";
-    // for(ll i=0;i<hub_list.size();i++) {
-    //     cout<<"Global Index : "<<hub_list[i].global_index<<" ";
-    //     cout<<"Mac address : "<<hub_list[i].mac <<" ";
-    //     cout<<"\n";
-    //     cout<<"\n";
-    // }
-    // cout<<"\n";
-    // cout<<"Switches  : ";
-    // for(ll i=0;i<switch_list.size();i++) {
-    //     cout<<"Global Index : "<<switch_list[i].global_index<<" ";
-    //     cout<<"Mac address : "<<switch_list[i].mac <<" ";
-    //     cout<<"\n";
-    //     cout<<"\n";
-    // }
-    // cout<<"\n";
-    // cout<<"Router : ";
-    // for(ll i=0;i<router_list.size();i++) {
-    //     cout<<router_list[i].global_index<<" ";
-    //     for(ll j=0;j<router_list[i].interface_ip_mac.size();j++) {
-    //       cout<<router_list[i].interface_ip_mac[j].first<<" "<<router_list[i].interface_ip_mac[j].second<<"\n";
-    //     }
-    //     cout<<"\n";
-    //     cout<<"\n";
-    // }
-    // cout<<"\n";
 
-
-    // for(ll i = 0;i < m; i++) {
-    //     cinll(u);cinll(v);
-    //     addEdge(u,v);
-    // }
-    vector<bool> visited(n+1,false);
-    dfs(1,visited);
+    // vector<bool> visited(n+1,false);
+    // dfs(1,visited);
 
 }
 
