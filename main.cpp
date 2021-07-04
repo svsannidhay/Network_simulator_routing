@@ -137,7 +137,81 @@ void generate_mac_address() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+bitset<32> ip_bits(string ip) {
+  
+  bitset<32> bset;
 
+  ll bit = 31;
+
+  ll start = 0;
+  string current = "";
+  while(start < ip.length()) {
+    if(ip[start] == '.') {
+      ll val = stoi(current);
+      bitset<8> bset2(val);
+      ll s = 7;
+      while(s >= 0) {
+        bset[bit] = bset2[s];
+        bit--;
+        s--;
+      }
+      current = "";
+    } else {
+      current.push_back(ip[start]);
+    }
+    start++;
+  }
+  ll val = stoi(current);
+  bitset<8> bset2(val);
+  ll s = 7;
+  while(s >= 0) {
+    bset[bit] = bset2[s];
+    bit--;
+    s--;
+  }
+  current = "";
+
+  // cout<<bset;
+
+  return bset;
+}
+
+///////////////////////////////////FINDING NID ///////////////////////////////////////////////////
+
+string find_nid(string ip,string subn) {
+
+  bitset<32> bitsip = ip_bits(ip);
+  bitset<32> subnet = ip_bits(subn);
+
+  bitset<32> nid = bitsip & subnet;
+
+  cout<<bitsip<<"\n";
+  cout<<subnet<<"\n";
+  cout<<nid<<"\n";
+  string nids;
+
+  ll ind = 7;
+  bitset<8> nidbits;
+
+  for(ll i = 31;i >= 0; i--) {
+    if(ind == -1) {
+      ind = 7;
+      ll val = nidbits.to_ulong(); 
+      nids += to_string(val);
+      nids.pb('.');
+      bitset<8> newb;
+      nidbits = newb; 
+    }
+    nidbits[ind] = nid[i];
+    ind--;
+  }
+  ll val = nidbits.to_ulong();
+  nids += to_string(val);
+  cout<<nids<<"\n";
+  return "";
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////Physical Topology//////////////////////////////////////////////
 
@@ -219,102 +293,104 @@ void dfs(ll current_device, vector<bool> & visited) {
 
 void boot() {
 
+    find_nid("192.167.54.224","255.255.255.0");
+
     ll n = 0;
 
-    cout<<"////// -> To Add a device enter 1. (Format : devicetype index) \n";
-    cout<<"////// -> To Add a connection enter 2. \n";
-    cout<<"///// -> To Run a query enter 3. \n";
-    cout<<"//// To exit enter  4 \n";
-    bool runner = true;
+    // cout<<"////// -> To Add a device enter 1. (Format : devicetype index) \n";
+    // cout<<"////// -> To Add a connection enter 2. \n";
+    // cout<<"///// -> To Run a query enter 3. \n";
+    // cout<<"//// To exit enter  4 \n";
+    // bool runner = true;
 
 
-    while(runner) {
-      cinll(type);
-      // Entering a device
-      if(type == 1) {
-        cout<<"Enter device and its global index : ";
-        cins(device); cinll(index);
-        n = max(n,index);
-        cout<<"\n";
-        if(device == "Host") {
-          Host h;
-          h.global_index = index;
-          h.mac = mac_address_list[mac_index];
-          device_type[index] = mp(device,host_no);
-          mac_index++;
-          cout<<"IP Address : ";
-          cin>>h.ipv4;
-          cout<<"\n";
-          cout<<"Subnet Mask : ";
-          cin>>h.subnet;
-          cout<<"\n";
-          host_list.pb(h);
-          host_no++;
-        }
+    // while(runner) {
+    //   cinll(type);
+    //   // Entering a device
+    //   if(type == 1) {
+    //     cout<<"Enter device and its global index : ";
+    //     cins(device); cinll(index);
+    //     n = max(n,index);
+    //     cout<<"\n";
+    //     if(device == "Host") {
+    //       Host h;
+    //       h.global_index = index;
+    //       h.mac = mac_address_list[mac_index];
+    //       device_type[index] = mp(device,host_no);
+    //       mac_index++;
+    //       cout<<"IP Address : ";
+    //       cin>>h.ipv4;
+    //       cout<<"\n";
+    //       cout<<"Subnet Mask : ";
+    //       cin>>h.subnet;
+    //       cout<<"\n";
+    //       host_list.pb(h);
+    //       host_no++;
+    //     }
 
-        if(device == "Switch") {
-          Switch s;
-          s.global_index = index;
-          s.mac = mac_address_list[mac_index];
-          mac_index++;
-          switch_list.pb(s);
-          device_type[index] = mp(device,switch_no);
-          switch_no++;
-        } 
+    //     if(device == "Switch") {
+    //       Switch s;
+    //       s.global_index = index;
+    //       s.mac = mac_address_list[mac_index];
+    //       mac_index++;
+    //       switch_list.pb(s);
+    //       device_type[index] = mp(device,switch_no);
+    //       switch_no++;
+    //     } 
 
-        if(device == "Hub") {
-          Hub h;
-          h.global_index = index;
-          h.mac = mac_address_list[mac_index];
-          mac_index++;
-          device_type[index] = mp(device,hub_no);
-          hub_no++;
-          hub_list.pb(h);
-        }
+    //     if(device == "Hub") {
+    //       Hub h;
+    //       h.global_index = index;
+    //       h.mac = mac_address_list[mac_index];
+    //       mac_index++;
+    //       device_type[index] = mp(device,hub_no);
+    //       hub_no++;
+    //       hub_list.pb(h);
+    //     }
 
-        if(device == "Router") {
-          cout<<"Enter the maximum no of iterfaces need : ";
-          cinll(no);
-          cout<<"\n";
-          Router r;
-          r.global_index = index;
-          ll curr = 0;
-          while(no > 0) {
-            cout<<"ip for interface " << curr << " : ";
-            cins(ip);
-            cout<<"Subnet for interface " << curr <<" : ";
-            cins(subnet);
-            cout<<"\n";
-            r.interface_ip_mac.pb(mp(mp(ip,subnet),mac_address_list[mac_index]));
-            mac_index++;
-            curr++;
-            no--;
-          } 
-          device_type[index] = mp(device,router_no);
-          router_list.pb(r);
-          router_no++;
-        }
+    //     if(device == "Router") {
+    //       cout<<"Enter the maximum no of iterfaces need : ";
+    //       cinll(no);
+    //       cout<<"\n";
+    //       Router r;
+    //       r.global_index = index;
+    //       ll curr = 0;
+    //       while(no > 0) {
+    //         cout<<"ip for interface " << curr << " : ";
+    //         cins(ip);
+    //         cout<<"Subnet for interface " << curr <<" : ";
+    //         cins(subnet);
+    //         cout<<"\n";
+    //         r.interface_ip_mac.pb(mp(mp(ip,subnet),mac_address_list[mac_index]));
+    //         mac_index++;
+    //         curr++;
+    //         no--;
+    //       } 
+    //       device_type[index] = mp(device,router_no);
+    //       router_list.pb(r);
+    //       router_no++;
+    //     }
 
-      }
+    //   }
 
-      if(type == 2) {
-        cout<<"Enter the connection (u,v) : ";
-        cinll(u);cinll(v);
-        cout<<"\n";
-        addEdge(u,v);
+    //   if(type == 2) {
+    //     cout<<"Enter the connection (u,v) : ";
+    //     cinll(u);cinll(v);
+    //     cout<<"\n";
+    //     addEdge(u,v);
 
-      }
+    //   }
       
-      if(type == 2) {
+    //   if(type == 2) {
 
-        // Assigning Ip to all the devices which don't have ip 
+    //     // Assigning Ip to all the devices which don't have ip 
 
-      }
+    //   }
 
-      if(type == 4) {
-        runner = false;
-      }
-    }
+    //   if(type == 4) {
+    //     runner = false;
+    //   }
+    // }
 
     // cout<<"Devices : ";
     // for(ll i=0;i<hub_list.size();i++) {
