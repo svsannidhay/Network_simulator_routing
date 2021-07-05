@@ -341,6 +341,7 @@ void dfs(ll current_device, vector<bool> & visited) {
             Host h = host_list[device_type[current_device].s];
             cout<<"global index : "<<h.global_index<<"\n";
             cout<<"mac address : "<<h.mac<<"\n";
+            cout<<"ipv4 : "<<h.ipv4<<"\n";
             cout<<"device type : "<<type<<"\n\n";
         } else if(type == "Hub") {
             Hub h = hub_list[device_type[current_device].s];
@@ -419,6 +420,7 @@ string search_mac(ll current_device, string ip_Address) {
   string mac_dest = "";
   for(auto it = arp_table.begin(); it != arp_table.end(); it++) {
     if(it->first == ip_Address) {
+      cout<<"found in arp table";
       return it->second;
     }
   }
@@ -434,7 +436,123 @@ string search_mac(ll current_device, string ip_Address) {
 ////////////////////////////////SEND PACKETS (BOTH DATA AND ACK) /////////////////////////////////
 
 
-// void send_packet(ll current_device,vector <bool> &visited, string sender_ip , string dest_ip , string)
+void send_packet(ll current_device,vector <bool> &visited,ll ind_prev, string sender_mac , string dest_mac, bool isAck, bool &isAckRecieved) {
+  if(!visited[current_device]) {
+    visited[current_device] = true;
+
+    string type = device_type[current_device].f;
+
+    if(type == "Switch") {
+      // First lets indetify the interface on which our source is 
+      ll interface = -1;
+      for(ll i = 0;i < connections[current_device].size(); i++) {
+          if (connections[current_device][i] == ind_prev) {
+              interface = i+1;
+              break;
+          }
+      }
+      // adding source to the switch table
+      Switch &s = switch_list[device_type[current_device].s];
+      if(interface != -1) { 
+        s.switch_table[sender_mac] = interface;
+      }
+
+      ll destPort = 0;
+      destPort = s.switch_table[dest_mac];
+
+      if(destPort != 0) {
+
+          cout<<"Device Type : "<< type<<"\n";
+          cout<<"Global Index : "<<s.global_index<<"\n";
+          cout<<"Mac address : "<<s.mac<<"\n";
+          if(isAck) cout<<"isACK \n";
+          cout<<"Sending to : "<<connections[current_device][destPort-1]<<"\n\n";
+
+          // if(collison_or_not() == 1) {
+              send_packet(connections[current_device][destPort-1],visited,current_device,sender_mac,dest_mac,isAck,isAckRecieved);
+          // } else {
+              // cout<<"\n !!!!! COLLISION HAPPENED WHILE TRANSMISSION !!!!! \n";
+          // }
+      } else {
+          //Broadcast
+          cout<<"SWITCH IS BROADCASTING : \n\n";
+          for(ll i = 0;i < connections[current_device].size(); i++) {
+              if(!visited[connections[current_device][i]]) {
+                  cout<<"Device Type : "<< type<<"\n";
+                  cout<<"Global Index : "<<s.global_index<<"\n";
+                  cout<<"Mac address : "<<s.mac<<"\n";
+                  if(isAck) cout<<"isACK \n";
+                  cout<<"Sending to : "<<connections[current_device][i]<<"\n\n";
+                  // if(collison_or_not() == 1) {
+                      send_packet(connections[current_device][i],visited,current_device,sender_mac,dest_mac,isAck,isAckRecieved);
+                  // } else {
+                      // cout<<"\n !!!!! COLLISION HAPPENED WHILE TRANSMISSION !!!!! \n";
+                  // /}
+              }
+          }
+        }
+      }
+
+
+    // if the device is Hub or a dedicated connection directly send
+    Hub h;
+    Host d;
+    // CHECK IF WE ARE DESTINATION OR NOT
+    d = host_list[device_type[current_device].s];
+    if(type == "Host" && d.mac == dest_mac && !isAck) {
+        cout<<"Data packet recieved sucessfully sending back ACK";
+        vector<bool> visited(10001,false);
+        cout<<"\nSENDING ACK FROM "<< dest_mac<<"  to  "<<sender_mac<<"\n\n";
+        send_packet(current_device,visited,-1,dest_mac,sender_mac,true,isAckRecieved);
+        return;
+    } else if(type == "Host" && d.mac == dest_mac) {
+        isAckRecieved = true;
+        cout<<"ACK recieved sucessfully \n\n";
+        return;
+    }
+    for(ll i = 0;i < connections[current_device].size(); i++) {
+        if(!visited[connections[current_device][i]]) {
+            if(type == "Hub") {
+                h = hub_list[device_type[current_device].s];
+                cout<<"Device Type : "<< type<<"\n";
+                cout<<"Global Index : "<<h.global_index<<"\n";
+                cout<<"Mac address : "<<h.mac<<"\n";
+                if(isAck) cout<<"isACK \n";
+                cout<<"Sending to : "<<connections[current_device][i]<<"\n\n";
+            } 
+            if(type == "Host") {
+                d = host_list[device_type[current_device].s];
+                cout<<"Device Type : "<< type<<"\n";
+                cout<<"Global Index : "<<d.global_index<<"\n";
+                cout<<"Mac address : "<<d.mac<<"\n";
+                if(isAck) cout<<"isACK \n";
+                cout<<"Sending to : "<<connections[current_device][i]<<"\n\n";
+
+                if(d.mac == dest_mac && !isAck) {
+                    cout<<"Data packet recieved sucessfully sending back ACK";
+                    vector<bool> visited(10001,false);
+                    cout<<"\nSENDING ACK FROM "<< dest_mac<<"  to  "<<sender_mac<<"\n\n";
+                    // if(collison_or_not() == 1) {
+                        send_packet(current_device,visited,-1,dest_mac,sender_mac,true,isAckRecieved);
+                    // } else {
+                        // cout<<"\n !!!!! COLLISION HAPPENED WHILE TRANSMISSION !!!!! \n";
+                    // }
+                    return;
+                } else if(d.mac == dest_mac) {
+                    isAckRecieved = true;
+                    cout<<"ACK recieved sucessfully";
+                }
+            }
+            // if(collison_or_not() == 1) {
+                send_packet(connections[current_device][i],visited,current_device,sender_mac,dest_mac,isAck,isAckRecieved);
+            // } else {
+                // cout<<"\n !!!!! COLLISION HAPPENED WHILE TRANSMISSION !!!!! \n";
+            // }
+        }
+    }
+  }
+}
+
  
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -545,9 +663,28 @@ void boot() {
         cout<<"Enter destination's subnet :";
         cins(subnetd);
 
+
         if(find_nid(ips,subnets) == find_nid(ipd,subnetd)) {
           cout<<"Source and destination are in same subnet \n";
-          cout<<search_mac(ind,ipd);
+          string dest_mac = search_mac(ind,ipd);
+          Host &sender = host_list[device_type[ind].s];
+          sender.arp_table[ipd] = dest_mac;   
+          bool isAckRecieved = false;
+          vector<bool> visited(10001,false);
+          cout<<"\nSENDING PACKET FROM "<< sender.mac<<"  to  "<<dest_mac<<"\n\n";
+          send_packet(ind,visited,-1,sender.mac,dest_mac,false,isAckRecieved);
+          cout<<"Is ack recieved : "<<isAckRecieved<<"\n";
+
+          for(ll i=0;i<switch_list.size();i++) {
+            Switch s = switch_list[i];
+            cout<<"Global Index "<<s.global_index<<" \n ";
+            cout<<"SWITCHING TABLE";
+            for(auto it = s.switch_table.begin();it!=s.switch_table.end();it++) {
+              cout<<it->first<<" "<<it->second<<"\n";
+            }
+            cout<<"\n\n";
+          }
+
         } else {
           cout<<"Source and destination are in different subnet";
         }
@@ -560,8 +697,8 @@ void boot() {
     }
 
 
-    // vector<bool> visited(n+1,false);
-    // dfs(1,visited);
+    vector<bool> visited(n+1,false);
+    dfs(1,visited);
 
 }
 
