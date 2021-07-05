@@ -239,6 +239,94 @@ ll router_no;
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+////////////////////////////////Collision Domain calculator //////////////////////////////////////
+
+//So far it doesn't support routers and brouters 
+
+map< pair<ll,ll> ,ll> edge_value; 
+
+void count_collision_domains(ll current_device,ll prev_device,vector<bool> &visited,ll &val) {
+    if(!visited[current_device]) {
+        visited[current_device] = true;
+
+        if(prev_device != -1) {
+            edge_value[(mp(current_device,prev_device))] = val;
+            edge_value[mp(prev_device,current_device)] = val;
+        }
+
+        for(ll i=0;i < connections[current_device].size();i++) {
+            if(!visited[connections[current_device][i]]) {
+
+                if( (device_type[current_device].f == "switch" || device_type[current_device].f == "bridge") && device_type[connections[current_device][i]].f == "device") {
+                    val++;
+                    count_collision_domains(connections[current_device][i],current_device,visited,val);
+                } 
+
+                if(device_type[current_device].f == "device" && (device_type[connections[current_device][i]].f == "switch" || device_type[connections[current_device][i]].f == "bridge" ) ) {
+                    val++;
+                    count_collision_domains(connections[current_device][i],current_device,visited,val);
+                } 
+
+                if( (device_type[current_device].f == "switch" || device_type[current_device].f == "bridge") &&  (device_type[connections[current_device][i]].f == "switch" || device_type[connections[current_device][i]].f == "bridge" )) {
+                    val++;
+                    count_collision_domains(connections[current_device][i],current_device,visited,val);
+                } 
+
+                if( (device_type[current_device].f == "switch" || device_type[current_device].f == "bridge") && device_type[connections[current_device][i]].f == "hub") {
+                    val++;
+                    count_collision_domains(connections[current_device][i],current_device,visited,val);
+                }             
+
+                if(device_type[current_device].f == "hub" && (device_type[connections[current_device][i]].f == "switch" || device_type[connections[current_device][i]].f == "bridge" )) {
+                    count_collision_domains(connections[current_device][i],current_device,visited,val);
+                } 
+
+                if(device_type[current_device].f == "hub" && device_type[connections[current_device][i]].f == "device") {
+                    count_collision_domains(connections[current_device][i],current_device,visited,val);
+                } 
+
+                if(device_type[current_device].f == "device" && device_type[connections[current_device][i]].f == "hub") {
+                    count_collision_domains(connections[current_device][i],current_device,visited,val);
+                } 
+
+            }   
+
+        }
+
+    }
+}
+
+void no_of_collision_domains() {
+    vector<bool> visited(10001,false);
+    ll val = 1;
+    count_collision_domains(1,-1,visited,val);
+    set<ll> ans;
+    for(auto it = edge_value.begin(); it != edge_value.end(); it++) {
+        ans.insert(it->second);
+    }
+    cout<<"\n NO OF COLLISION DOMAINS "<< ans.size() << "\n";
+    cout<<"\n NO OF BROADCAST DOMAINS "<< 1 << "\n";
+}
+
+// ALSO no of boradCast domains will always be 1 upto layer two devices.
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////Collision Or no Collision based on probabiliy////////////////////
+
+// p is the propbability of sucessfull transmission
+ll p; 
+ll collison_or_not() {
+    vector<ll> prob(101,0);
+    for(ll i = 0;i < p; i++) {
+        prob[i] = 1;
+    }
+    ll index = rand() % 100;         
+    return prob[index];
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
